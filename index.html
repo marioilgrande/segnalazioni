@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Gestione Segnalazioni Negozi</title>
+  <style>
+    :root {
+      --primary:   #007BFF;
+      --success:   #0ABAB5;
+      --warning:   #FFEB3B;
+      --danger:    #dc2626;
+      --bg:        #eef2f7;
+      --card:      #fff;
+      --text:      #333;
+      --radius:    20px;
+      --space:     16px;
+    }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body {
+      font-family: Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: var(--space);
+      display: flex; justify-content: center;
+    }
+    .container {
+      background: var(--card);
+      max-width: 1600px; width:100%;
+      border-radius: var(--radius);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    .header {
+      background: var(--primary);
+      color: #fff;
+      padding: var(--space);
+      text-align: center;
+      font-size: 1.75rem;
+      font-weight: bold;
+    }
+    .controls {
+      display: flex; flex-wrap: wrap; gap: var(--space);
+      padding: var(--space); align-items: center;
+    }
+    .controls .btn,
+    .controls .file-label {
+      background: var(--primary);
+      color: #fff;
+      padding: .6rem 1rem;
+      border: none;
+      border-radius: var(--radius);
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .controls .btn:hover,
+    .controls .file-label:hover { background: #0056b3; }
+    #file-input { display: none; }
+
+    #search-input {
+      flex: 1; min-width: 200px; max-width: 300px;
+      padding: 8px 12px; border: 1px solid #ccc;
+      border-radius: var(--radius); font-size: 1rem;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      padding: 0 var(--space) var(--space);
+    }
+    table {
+      width:100%; border-collapse: collapse; min-width:800px;
+    }
+    th, td {
+      padding:12px 16px; border-bottom:1px solid #ddd;
+      text-align:left; white-space: nowrap;
+    }
+    thead { background: #f3f4f6; }
+    tbody tr:hover { background: #fafafa; }
+
+    .actions {
+      display: flex; justify-content: center;
+      gap: 12px; padding:8px 0;
+    }
+    .actions button {
+      flex:1; max-width:160px;
+      height:36px; line-height:36px;
+      padding:0 16px;
+      font-size:.85rem; font-weight:bold;
+      text-align:center;
+      border-radius: var(--radius);
+      border:2px solid transparent;
+      cursor:pointer;
+      transition: transform .15s ease, box-shadow .15s ease;
+    }
+    .actions button:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    }
+    .actions .contract {
+      background: var(--success);
+      border-color: var(--success);
+      color: #fff;
+    }
+    .actions .credentials {
+      background: var(--warning);
+      border-color: var(--warning);
+      color: #333;
+    }
+    .actions .delete {
+      background: var(--danger);
+      border-color: var(--danger);
+      color: #fff; /* forza X bianca */
+    }
+
+    .modal {
+      position: fixed; top:0; left:0;
+      width:100%; height:100%;
+      background: rgba(0,0,0,0.5);
+      display: none; align-items: center; justify-content: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background: #fff;
+      padding: var(--space);
+      border-radius: var(--radius);
+      width: 90%; max-width: 400px;
+    }
+    .modal-content h2,
+    .modal-content h3 {
+      margin-bottom: var(--space);
+      font-size: 1.25rem;
+      color: var(--primary);
+    }
+    .modal-content label {
+      display: block; margin-top: .75rem;
+      font-weight: bold;
+    }
+    .modal-content input,
+    .modal-content textarea {
+      width:100%; padding:8px; margin-top:4px;
+      border:1px solid #ccc; border-radius:var(--radius);
+      font-size:1rem; resize: vertical;
+    }
+    .modal-content textarea { height:80px; }
+    .modal-buttons {
+      display:flex; justify-content:flex-end; gap:8px;
+      margin-top: var(--space);
+    }
+    .modal-buttons button {
+      padding:8px 16px; border:none;
+      border-radius:var(--radius); cursor:pointer;
+      font-weight:600;
+    }
+    .btn-cancel { background:#ccc; color:#333; }
+    .btn-confirm { background:var(--primary); color:#fff; }
+
+    /* Griglia opzioni credenziali */
+    #credModal .option {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      align-items: center;
+      gap:12px;
+      margin-bottom: var(--space);
+    }
+    #credModal .option:last-of-type {
+      margin-bottom: calc(var(--space)*1.5);
+    }
+    #credModal .option label {
+      margin:0; font-weight: normal; line-height:1.2;
+    }
+
+    @media(max-width:640px){
+      th,td{padding:8px;}
+      .actions button{height:32px;line-height:32px;font-size:.75rem;}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">Gestione Segnalazioni Negozi</div>
+    <div class="controls">
+      <label for="file-input" class="file-label">📂 Importa Excel</label>
+      <input type="file" id="file-input" accept=".xlsx"/>
+      <input type="text" id="search-input" placeholder="Cerca negozio…"/>
+      <button id="add-row" class="btn">➕ Aggiungi Negozio</button>
+    </div>
+    <div class="table-wrap">
+      <table id="data-table">
+        <thead>
+          <tr>
+            <th>NEGOZIO</th><th>SIS/SUB</th><th>AGENZIA</th>
+            <th>TELEFONO</th><th>MAIL</th><th>AZIONI</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal CONTRATTO -->
+  <div id="contractModal" class="modal">
+    <div class="modal-content">
+      <h2>Richiesta Contratto</h2>
+      <form id="contractForm">
+        <label for="cf">Codice Fiscale</label>
+        <input type="text" id="cf" name="cf" required/>
+        <label for="pratica">Numero Pratica</label>
+        <input type="text" id="pratica" name="pratica" required/>
+        <label for="note">Note Aggiuntive</label>
+        <textarea id="note" name="note"></textarea>
+        <div class="modal-buttons">
+          <button type="button" class="btn-cancel">Annulla</button>
+          <button type="submit" class="btn-confirm">Conferma</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal CREDENZIALI -->
+  <div id="credModal" class="modal">
+    <div class="modal-content">
+      <h3>Seleziona tipo di reset</h3>
+      <form id="credForm">
+        <div class="option">
+          <input type="radio" id="mode-solo" name="mode" value="solo" checked>
+          <label for="mode-solo">Reset solo credenziali</label>
+        </div>
+        <div class="option">
+          <input type="radio" id="mode-auth" name="mode" value="authenticator">
+          <label for="mode-auth">Reset credenziali + dissociazione Authenticator</label>
+        </div>
+        <div class="modal-buttons">
+          <button type="button" id="credCancel" class="btn-cancel">Annulla</button>
+          <button type="submit" class="btn-confirm">Conferma</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script>
+    const STORAGE = 'segnalazioniNegozi';
+    let data = [], currentRowIndex = null, filter = '';
+
+    function save() { localStorage.setItem(STORAGE, JSON.stringify(data)); }
+    function load() {
+      const s = localStorage.getItem(STORAGE);
+      if (s) data = JSON.parse(s);
+      draw();
+    }
+
+    function sendEmail(to, cc, subject, body) {
+      const crlf = '%0D%0A';
+      const qs = [
+        cc? 'cc='+encodeURIComponent(cc):null,
+        'subject='+encodeURIComponent(subject),
+        'body='+encodeURIComponent(body).replace(/%0A/g,crlf)
+      ].filter(Boolean).join('&');
+      const mailto = `mailto:${to}?${qs}`;
+      const a = document.createElement('a');
+      a.href = mailto; document.body.appendChild(a);
+      a.click(); document.body.removeChild(a);
+    }
+
+    function draw() {
+      const tbody = document.querySelector('#data-table tbody');
+      tbody.innerHTML = '';
+      data.forEach((r,i) => {
+        if(filter && !r.negozio.toLowerCase().includes(filter)) return;
+        const tr = document.createElement('tr');
+        ['negozio','sis','agenzia','telefono','mail'].forEach(k=>{
+          const td=document.createElement('td');
+          td.contentEditable=true;
+          td.innerText=r[k]||'';
+          td.oninput=()=>{r[k]=td.innerText; save();};
+          tr.appendChild(td);
+        });
+        const tdA=document.createElement('td'); tdA.className='actions';
+
+        const cred=document.createElement('button');
+        cred.className='credentials'; cred.innerText='CREDENZIALI';
+        cred.onclick=()=>openCredModal(i);
+        tdA.appendChild(cred);
+
+        const ctr=document.createElement('button');
+        ctr.className='contract'; ctr.innerText='CONTRATTO';
+        ctr.onclick=()=>{
+          currentRowIndex=i;
+          document.getElementById('contractModal').style.display='flex';
+        };
+        tdA.appendChild(ctr);
+
+        const del=document.createElement('button');
+        del.className='delete'; del.innerText='❌';
+        del.onclick=()=>{
+          if(confirm('Eliminare questa riga?')){
+            data.splice(i,1); save(); draw();
+          }
+        };
+        tdA.appendChild(del);
+
+        tr.appendChild(tdA);
+        tbody.appendChild(tr);
+      });
+    }
+
+    document.getElementById('search-input').addEventListener('input',e=>{
+      filter=e.target.value.trim().toLowerCase();
+      draw();
+    });
+
+    document.getElementById('file-input').addEventListener('change',e=>{
+      const f=e.target.files[0]; if(!f)return;
+      const r=new FileReader();
+      r.onload=ev=>{
+        const wb=XLSX.read(ev.target.result,{type:'array'});
+        const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1});
+        data=rows.slice(1).map(rw=>({
+          negozio: rw[0]||'', sis: rw[1]||'', agenzia: rw[2]||'',
+          telefono: rw[3]||'', mail: rw[4]||''
+        }));
+        save(); draw();
+      };
+      r.readAsArrayBuffer(f);
+    });
+
+    document.getElementById('add-row').addEventListener('click',()=>{
+      data.push({}); save(); draw();
+    });
+
+    // CONTRATTO
+    const contractModal=document.getElementById('contractModal');
+    contractModal.querySelector('.btn-cancel').onclick=()=>{
+      contractModal.style.display='none';
+    };
+    document.getElementById('contractForm').addEventListener('submit',e=>{
+      e.preventDefault();
+      const row=data[currentRowIndex];
+      const cf=e.target.cf.value.trim();
+      const prat=e.target.pratica.value.trim();
+      const note=e.target.note.value.trim();
+      const subject=`Richiesta supporto: ${prat}`;
+      const body=[
+        `Ciao Maria,`,
+        ``,
+        `Ti chiedo assistenza per il punto vendita:`,
+        `- Negozio: ${row.negozio}`,
+        `- SIS/SUB: ${row.sis}`,
+        `- Agenzia: ${row.agenzia}`,
+        ``,
+        `Dati della pratica:`,
+        `- Codice Fiscale: ${cf}`,
+        `- Numero Pratica: ${prat}`,
+        `- Note: ${note}`,
+        ``,
+        `Cordiali saluti`
+      ].join('\n');
+      sendEmail(
+        'maria.pereira@e2kdistribution.com',
+        'luca.lomonte@e2kdistribution.com',
+        subject,
+        body
+      );
+      contractModal.style.display='none';
+      e.target.reset();
+    });
+
+    // CREDENZIALI
+    function openCredModal(idx){
+      currentRowIndex=idx;
+      document.getElementById('credModal').style.display='flex';
+    }
+    const credModal=document.getElementById('credModal');
+    credModal.querySelector('#credCancel').onclick=()=>{
+      credModal.style.display='none';
+    };
+    document.getElementById('credForm').addEventListener('submit',e=>{
+      e.preventDefault();
+      const row=data[currentRowIndex];
+      const mode=e.target.mode.value;
+      let subject='Richiesta reset credenziali';
+      if(mode==='authenticator'){
+        subject+=' e Authenticator';
+      }
+      subject+=` – ${row.negozio} (${row.sis}) – ${row.agenzia}`;
+      const body=[
+        `Ciao Luca,`,
+        ``,
+        `Con la presente richiedo il reset delle credenziali${mode==='authenticator'?' e la dissociazione dell’Authenticator':''}`,
+        `per il seguente punto vendita:`,
+        `- Negozio:  ${row.negozio}`,
+        `- SIS/SUB:  ${row.sis}`,
+        `- Agenzia:  ${row.agenzia}`,
+        `- Telefono: ${row.telefono}`,
+        `- Mail:    ${row.mail}`,
+        ``,
+        `Cordiali saluti`
+      ].join('\n');
+      sendEmail(
+        'luca.lomonte@e2kdistribution.com','',subject,body
+      );
+      credModal.style.display='none';
+      e.target.reset();
+    });
+
+    window.addEventListener('DOMContentLoaded',load);
+  </script>
+</body>
+</html>
