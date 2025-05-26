@@ -170,9 +170,42 @@
       margin:0; font-weight: normal; line-height:1.2;
     }
 
-    @media(max-width:640px){
-      th,td{padding:8px;}
-      .actions button{height:32px;line-height:32px;font-size:.75rem;}
+    /* RESPONSIVE per mobile: mostra solo colonna 1 + azioni */
+    @media(max-width:640px) {
+      /* nasconde ricerca e importazione */
+      #search-input,
+      .controls .file-label,
+      .controls #add-row {
+        display: none;
+      }
+      /* nasconde tutte le colonne tranne la prima (negozio) e l'ultima (azioni) */
+      table thead th:nth-child(n+2):nth-child(-n+5),
+      table tbody td:nth-child(n+2):nth-child(-n+5) {
+        display: none;
+      }
+      /* rende la tabella a piena larghezza */
+      table {
+        min-width: auto;
+        display: block;
+      }
+      tbody tr {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+      }
+      td:first-child {
+        flex: 1;
+      }
+      td:last-child {
+        flex: 1;
+        display: flex;
+        justify-content: flex-end;
+      }
+      th:first-child,
+      th:last-child {
+        display: none; /* l'intestazione su mobile non serve */
+      }
     }
   </style>
 </head>
@@ -285,19 +318,12 @@
 
         const ctr=document.createElement('button');
         ctr.className='contract'; ctr.innerText='CONTRATTO';
-        ctr.onclick=()=>{
-          currentRowIndex=i;
-          document.getElementById('contractModal').style.display='flex';
-        };
+        ctr.onclick=()=>{ currentRowIndex=i; document.getElementById('contractModal').style.display='flex'; };
         tdA.appendChild(ctr);
 
         const del=document.createElement('button');
         del.className='delete'; del.innerText='❌';
-        del.onclick=()=>{
-          if(confirm('Eliminare questa riga?')){
-            data.splice(i,1); save(); draw();
-          }
-        };
+        del.onclick=()=>{ if(confirm('Eliminare questa riga?')){ data.splice(i,1); save(); draw(); } };
         tdA.appendChild(del);
 
         tr.appendChild(tdA);
@@ -312,8 +338,8 @@
 
     document.getElementById('file-input').addEventListener('change',e=>{
       const f=e.target.files[0]; if(!f)return;
-      const r=new FileReader();
-      r.onload=ev=>{
+      const reader=new FileReader();
+      reader.onload=ev=>{
         const wb=XLSX.read(ev.target.result,{type:'array'});
         const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1});
         data=rows.slice(1).map(rw=>({
@@ -322,7 +348,7 @@
         }));
         save(); draw();
       };
-      r.readAsArrayBuffer(f);
+      reader.readAsArrayBuffer(f);
     });
 
     document.getElementById('add-row').addEventListener('click',()=>{
@@ -331,9 +357,7 @@
 
     // CONTRATTO
     const contractModal=document.getElementById('contractModal');
-    contractModal.querySelector('.btn-cancel').onclick=()=>{
-      contractModal.style.display='none';
-    };
+    contractModal.querySelector('.btn-cancel').onclick=()=>{ contractModal.style.display='none'; };
     document.getElementById('contractForm').addEventListener('submit',e=>{
       e.preventDefault();
       const row=data[currentRowIndex];
@@ -356,33 +380,21 @@
         ``,
         `Cordiali saluti`
       ].join('\n');
-      sendEmail(
-        'maria.pereira@e2kdistribution.com',
-        'luca.lomonte@e2kdistribution.com',
-        subject,
-        body
-      );
+      sendEmail('maria.pereira@e2kdistribution.com','luca.lomonte@e2kdistribution.com',subject,body);
       contractModal.style.display='none';
       e.target.reset();
     });
 
     // CREDENZIALI
-    function openCredModal(idx){
-      currentRowIndex=idx;
-      document.getElementById('credModal').style.display='flex';
-    }
+    function openCredModal(idx){ currentRowIndex=idx; document.getElementById('credModal').style.display='flex'; }
     const credModal=document.getElementById('credModal');
-    credModal.querySelector('#credCancel').onclick=()=>{
-      credModal.style.display='none';
-    };
+    credModal.querySelector('#credCancel').onclick=()=>{ credModal.style.display='none'; };
     document.getElementById('credForm').addEventListener('submit',e=>{
       e.preventDefault();
       const row=data[currentRowIndex];
       const mode=e.target.mode.value;
       let subject='Richiesta reset credenziali';
-      if(mode==='authenticator'){
-        subject+=' e Authenticator';
-      }
+      if(mode==='authenticator') subject+=' e Authenticator';
       subject+=` – ${row.negozio} (${row.sis}) – ${row.agenzia}`;
       const body=[
         `Ciao Luca,`,
@@ -397,9 +409,7 @@
         ``,
         `Cordiali saluti`
       ].join('\n');
-      sendEmail(
-        'luca.lomonte@e2kdistribution.com','',subject,body
-      );
+      sendEmail('luca.lomonte@e2kdistribution.com','',subject,body);
       credModal.style.display='none';
       e.target.reset();
     });
