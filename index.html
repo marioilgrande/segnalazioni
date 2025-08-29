@@ -10,6 +10,7 @@
       --success:   #0ABAB5;
       --warning:   #FFEB3B;
       --danger:    #dc2626;
+      --info:      #25D366;
       --bg:        #eef2f7;
       --card:      #fff;
       --text:      #333;
@@ -80,13 +81,13 @@
 
     .actions {
       display: flex; justify-content: center;
-      gap: 12px; padding:8px 0;
+      gap: 8px; padding:8px 0; flex-wrap: wrap;
     }
     .actions button {
-      flex:1; max-width:160px;
-      height:36px; line-height:36px;
-      padding:0 16px;
-      font-size:.85rem; font-weight:bold;
+      flex:1; max-width:100px;
+      height:34px; line-height:34px;
+      padding:0 6px;
+      font-size:.75rem; font-weight:bold;
       text-align:center;
       border-radius: var(--radius);
       border:2px solid transparent;
@@ -97,21 +98,10 @@
       transform: translateY(-2px) scale(1.02);
       box-shadow: 0 6px 12px rgba(0,0,0,0.15);
     }
-    .actions .contract {
-      background: var(--success);
-      border-color: var(--success);
-      color: #fff;
-    }
-    .actions .credentials {
-      background: var(--warning);
-      border-color: var(--warning);
-      color: #333;
-    }
-    .actions .delete {
-      background: var(--danger);
-      border-color: var(--danger);
-      color: #fff; /* forza X bianca */
-    }
+    .actions .contract { background: var(--success); border-color: var(--success); color: #fff; }
+    .actions .credentials { background: var(--warning); border-color: var(--warning); color: #333; }
+    .actions .delete { background: var(--danger); border-color: var(--danger); color: #fff; }
+    .actions .whatsapp { background: var(--info); border-color: var(--info); color: #fff; }
 
     .modal {
       position: fixed; top:0; left:0;
@@ -133,7 +123,8 @@
       color: var(--primary);
     }
     .modal-content label {
-      display: block; margin-top: .75rem;
+      display: block;
+      margin-top: .75rem;
       font-weight: bold;
     }
     .modal-content input,
@@ -163,50 +154,8 @@
       gap:12px;
       margin-bottom: var(--space);
     }
-    #credModal .option:last-of-type {
-      margin-bottom: calc(var(--space)*1.5);
-    }
-    #credModal .option label {
-      margin:0; font-weight: normal; line-height:1.2;
-    }
-
-    /* RESPONSIVE per mobile: mostra solo colonna 1 + azioni */
-    @media(max-width:640px) {
-      /* nasconde ricerca e importazione */
-      #search-input,
-      .controls .file-label,
-      .controls #add-row {
-        display: none;
-      }
-      /* nasconde tutte le colonne tranne la prima (negozio) e l'ultima (azioni) */
-      table thead th:nth-child(n+2):nth-child(-n+5),
-      table tbody td:nth-child(n+2):nth-child(-n+5) {
-        display: none;
-      }
-      /* rende la tabella a piena larghezza */
-      table {
-        min-width: auto;
-        display: block;
-      }
-      tbody tr {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 8px 0;
-      }
-      td:first-child {
-        flex: 1;
-      }
-      td:last-child {
-        flex: 1;
-        display: flex;
-        justify-content: flex-end;
-      }
-      th:first-child,
-      th:last-child {
-        display: none; /* l'intestazione su mobile non serve */
-      }
-    }
+    #credModal .option:last-of-type { margin-bottom: calc(var(--space)*1.5); }
+    #credModal .option label { margin:0; font-weight: normal; line-height:1.2; }
   </style>
 </head>
 <body>
@@ -217,6 +166,7 @@
       <input type="file" id="file-input" accept=".xlsx"/>
       <input type="text" id="search-input" placeholder="Cerca negozio…"/>
       <button id="add-row" class="btn">➕ Aggiungi Negozio</button>
+      <button id="export-excel" class="btn">📤 Esporta Excel</button>
     </div>
     <div class="table-wrap">
       <table id="data-table">
@@ -273,67 +223,66 @@
 
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script>
-    const STORAGE = 'segnalazioniNegozi';
-    let data = [], currentRowIndex = null, filter = '';
+    const STORAGE='segnalazioniNegozi';
+    let data=[], currentRowIndex=null, filter='';
 
-    function save() { localStorage.setItem(STORAGE, JSON.stringify(data)); }
-    function load() {
-      const s = localStorage.getItem(STORAGE);
-      if (s) data = JSON.parse(s);
-      draw();
-    }
+    function save(){ localStorage.setItem(STORAGE, JSON.stringify(data)); }
+    function load(){ const s=localStorage.getItem(STORAGE); if(s) data=JSON.parse(s); draw(); }
 
-    function sendEmail(to, cc, subject, body) {
-      const crlf = '%0D%0A';
-      const qs = [
-        cc? 'cc='+encodeURIComponent(cc):null,
+    function sendEmail(to, cc, subject, body){
+      const crlf='%0D%0A';
+      const qs=[ cc? 'cc='+encodeURIComponent(cc):null,
         'subject='+encodeURIComponent(subject),
         'body='+encodeURIComponent(body).replace(/%0A/g,crlf)
       ].filter(Boolean).join('&');
-      const mailto = `mailto:${to}?${qs}`;
-      const a = document.createElement('a');
-      a.href = mailto; document.body.appendChild(a);
-      a.click(); document.body.removeChild(a);
+      const mailto=`mailto:${to}?${qs}`;
+      const a=document.createElement('a'); a.href=mailto;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
     }
 
-    function draw() {
-      const tbody = document.querySelector('#data-table tbody');
-      tbody.innerHTML = '';
-      data.forEach((r,i) => {
+    function draw(){
+      const tbody=document.querySelector('#data-table tbody');
+      tbody.innerHTML='';
+      data.forEach((r,i)=>{
         if(filter && !r.negozio.toLowerCase().includes(filter)) return;
-        const tr = document.createElement('tr');
+        const tr=document.createElement('tr');
         ['negozio','sis','agenzia','telefono','mail'].forEach(k=>{
           const td=document.createElement('td');
           td.contentEditable=true;
-          td.innerText=r[k]||'';
-          td.oninput=()=>{r[k]=td.innerText; save();};
+          td.innerText=r[k]||''; td.oninput=()=>{r[k]=td.innerText; save();};
           tr.appendChild(td);
         });
         const tdA=document.createElement('td'); tdA.className='actions';
 
         const cred=document.createElement('button');
-        cred.className='credentials'; cred.innerText='CREDENZIALI';
-        cred.onclick=()=>openCredModal(i);
-        tdA.appendChild(cred);
+        cred.className='credentials'; cred.innerText='CRED';
+        cred.onclick=()=>openCredModal(i); tdA.appendChild(cred);
 
         const ctr=document.createElement('button');
-        ctr.className='contract'; ctr.innerText='CONTRATTO';
+        ctr.className='contract'; ctr.innerText='CONTR';
         ctr.onclick=()=>{ currentRowIndex=i; document.getElementById('contractModal').style.display='flex'; };
         tdA.appendChild(ctr);
+
+        const wa=document.createElement('button');
+        wa.className='whatsapp'; wa.innerText='INVIA';
+        wa.onclick=()=>{
+          const msg=`Ciao! Per chiamare il dealer support Acea devi comporre il numero 06 45698346, premere il tasto 2, e comunicare i codici per identificarti:\n- Negozio: ${r.negozio}\n- SIS/SUB: ${r.sis}\n- Agenzia: ${r.agenzia}`;
+          const url="https://wa.me/?text="+encodeURIComponent(msg);
+          window.open(url,"_blank");
+        };
+        tdA.appendChild(wa);
 
         const del=document.createElement('button');
         del.className='delete'; del.innerText='❌';
         del.onclick=()=>{ if(confirm('Eliminare questa riga?')){ data.splice(i,1); save(); draw(); } };
         tdA.appendChild(del);
 
-        tr.appendChild(tdA);
-        tbody.appendChild(tr);
+        tr.appendChild(tdA); tbody.appendChild(tr);
       });
     }
 
     document.getElementById('search-input').addEventListener('input',e=>{
-      filter=e.target.value.trim().toLowerCase();
-      draw();
+      filter=e.target.value.trim().toLowerCase(); draw();
     });
 
     document.getElementById('file-input').addEventListener('change',e=>{
@@ -343,16 +292,20 @@
         const wb=XLSX.read(ev.target.result,{type:'array'});
         const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1});
         data=rows.slice(1).map(rw=>({
-          negozio: rw[0]||'', sis: rw[1]||'', agenzia: rw[2]||'',
-          telefono: rw[3]||'', mail: rw[4]||''
-        }));
-        save(); draw();
+          negozio:rw[0]||'', sis:rw[1]||'', agenzia:rw[2]||'',
+          telefono:rw[3]||'', mail:rw[4]||''
+        })); save(); draw();
       };
       reader.readAsArrayBuffer(f);
     });
 
-    document.getElementById('add-row').addEventListener('click',()=>{
-      data.push({}); save(); draw();
+    document.getElementById('add-row').addEventListener('click',()=>{ data.push({}); save(); draw(); });
+
+    document.getElementById('export-excel').addEventListener('click',()=>{
+      const ws=XLSX.utils.json_to_sheet(data);
+      const wb=XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb,ws,"Segnalazioni");
+      XLSX.writeFile(wb,"segnalazioni.xlsx");
     });
 
     // CONTRATTO
@@ -366,23 +319,13 @@
       const note=e.target.note.value.trim();
       const subject=`Richiesta supporto: ${prat}`;
       const body=[
-        `Ciao Maria,`,
-        ``,
-        `Ti chiedo assistenza per il punto vendita:`,
-        `- Negozio: ${row.negozio}`,
-        `- SIS/SUB: ${row.sis}`,
-        `- Agenzia: ${row.agenzia}`,
-        ``,
-        `Dati della pratica:`,
-        `- Codice Fiscale: ${cf}`,
-        `- Numero Pratica: ${prat}`,
-        `- Note: ${note}`,
-        ``,
+        `Ciao Maria,`, ``, `Ti chiedo assistenza per il punto vendita:`,
+        `- Negozio: ${row.negozio}`, `- SIS/SUB: ${row.sis}`, `- Agenzia: ${row.agenzia}`, ``,
+        `Dati della pratica:`, `- Codice Fiscale: ${cf}`, `- Numero Pratica: ${prat}`, `- Note: ${note}`, ``,
         `Cordiali saluti`
       ].join('\n');
       sendEmail('maria.pereira@e2kdistribution.com','luca.lomonte@e2kdistribution.com',subject,body);
-      contractModal.style.display='none';
-      e.target.reset();
+      contractModal.style.display='none'; e.target.reset();
     });
 
     // CREDENZIALI
@@ -397,21 +340,14 @@
       if(mode==='authenticator') subject+=' e Authenticator';
       subject+=` – ${row.negozio} (${row.sis}) – ${row.agenzia}`;
       const body=[
-        `Ciao Luca,`,
-        ``,
+        `Ciao Luca,`, ``,
         `Con la presente richiedo il reset delle credenziali${mode==='authenticator'?' e la dissociazione dell’Authenticator':''}`,
         `per il seguente punto vendita:`,
-        `- Negozio:  ${row.negozio}`,
-        `- SIS/SUB:  ${row.sis}`,
-        `- Agenzia:  ${row.agenzia}`,
-        `- Telefono: ${row.telefono}`,
-        `- Mail:    ${row.mail}`,
-        ``,
-        `Cordiali saluti`
+        `- Negozio: ${row.negozio}`, `- SIS/SUB: ${row.sis}`, `- Agenzia: ${row.agenzia}`,
+        `- Telefono: ${row.telefono}`, `- Mail: ${row.mail}`, ``, `Cordiali saluti`
       ].join('\n');
       sendEmail('luca.lomonte@e2kdistribution.com','',subject,body);
-      credModal.style.display='none';
-      e.target.reset();
+      credModal.style.display='none'; e.target.reset();
     });
 
     window.addEventListener('DOMContentLoaded',load);
