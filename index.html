@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>Gestione Segnalazioni Negozi ACEA</title>
+  <title>Gestione Segnalazioni Negozi</title>
   <style>
     :root {
       --primary:   #007BFF;
@@ -160,7 +160,7 @@
 </head>
 <body>
   <div class="container">
-    <div class="header">Gestione Segnalazioni Negozi ACEA</div>
+    <div class="header">Gestione Segnalazioni Negozi</div>
     <div class="controls">
       <label for="file-input" class="file-label">📂 Importa Excel</label>
       <input type="file" id="file-input" accept=".xlsx"/>
@@ -319,12 +319,12 @@
       const note=e.target.note.value.trim();
       const subject=`Richiesta supporto: ${prat}`;
       const body=[
-        `Ciao Maria,`, ``, `Ti chiedo assistenza per il punto vendita:`,
+        `Ciao Luca,`, ``, `Ti chiedo assistenza per il punto vendita:`,
         `- Negozio: ${row.negozio}`, `- SIS/SUB: ${row.sis}`, `- Agenzia: ${row.agenzia}`, ``,
         `Dati della pratica:`, `- Codice Fiscale: ${cf}`, `- Numero Pratica: ${prat}`, `- Note: ${note}`, ``,
         `Cordiali saluti`
       ].join('\n');
-      sendEmail('maria.pereira@e2kdistribution.com','luca.lomonte@e2kdistribution.com',subject,body);
+      sendEmail('luca.lomonte@e2kdistribution.com',subject,body);
       contractModal.style.display='none'; e.target.reset();
     });
 
@@ -354,4 +354,3 @@
   </script>
 </body>
 </html>
-
