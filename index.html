@@ -308,25 +308,48 @@
       XLSX.writeFile(wb,"segnalazioni.xlsx");
     });
 
-    // CONTRATTO
-    const contractModal=document.getElementById('contractModal');
-    contractModal.querySelector('.btn-cancel').onclick=()=>{ contractModal.style.display='none'; };
-    document.getElementById('contractForm').addEventListener('submit',e=>{
-      e.preventDefault();
-      const row=data[currentRowIndex];
-      const cf=e.target.cf.value.trim();
-      const prat=e.target.pratica.value.trim();
-      const note=e.target.note.value.trim();
-      const subject=`Richiesta supporto: ${prat}`;
-      const body=[
-        `Ciao Luca,`, ``, `Ti chiedo assistenza per il punto vendita:`,
-        `- Negozio: ${row.negozio}`, `- SIS/SUB: ${row.sis}`, `- Agenzia: ${row.agenzia}`, ``,
-        `Dati della pratica:`, `- Codice Fiscale: ${cf}`, `- Numero Pratica: ${prat}`, `- Note: ${note}`, ``,
-        `Cordiali saluti`
-      ].join('\n');
-      sendEmail('luca.lomonte@e2kdistribution.com',subject,body);
-      contractModal.style.display='none'; e.target.reset();
-    });
+// CONTRATTO
+const contractModal = document.getElementById('contractModal');
+contractModal.querySelector('.btn-cancel').onclick = () => {
+  contractModal.style.display = 'none';
+};
+
+document.getElementById('contractForm').addEventListener('submit', e => {
+  e.preventDefault();
+
+  const row  = data[currentRowIndex];
+  const cf   = e.target.cf.value.trim();
+  const prat = e.target.pratica.value.trim();
+  const note = e.target.note.value.trim();
+
+  const subject = `Richiesta supporto: ${prat}`;
+  const body = [
+    `Ciao Luca,`,
+    ``,
+    `Ti chiedo assistenza per il punto vendita:`,
+    `- Negozio: ${row.negozio}`,
+    `- SIS/SUB: ${row.sis}`,
+    `- Agenzia: ${row.agenzia}`,
+    ``,
+    `Dati della pratica:`,
+    `- Codice Fiscale: ${cf}`,
+    `- Numero Pratica: ${prat}`,
+    `- Note: ${note}`,
+    ``,
+    `Cordiali saluti`
+  ].join('\n');
+
+  sendEmail(
+    'luca.lomonte@e2kdistribution.com',
+    '',
+    subject,
+    body
+  );
+
+  contractModal.style.display = 'none';
+  e.target.reset();
+});
+
 
     // CREDENZIALI
     function openCredModal(idx){ currentRowIndex=idx; document.getElementById('credModal').style.display='flex'; }
@@ -354,3 +377,4 @@
   </script>
 </body>
 </html>
+
