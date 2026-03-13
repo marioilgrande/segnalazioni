@@ -266,7 +266,7 @@
         const wa=document.createElement('button');
         wa.className='whatsapp'; wa.innerText='INVIA';
         wa.onclick=()=>{
-          const msg=`Ciao! Per chiamare il dealer support Acea devi comporre il numero 06 45698346, premere il tasto 2, e comunicare i codici per identificarti:\n- Negozio: ${r.negozio}\n- SIS/SUB: ${r.sis}\n- Agenzia: ${r.agenzia}`;
+          const msg=`Ciao! Per chiamare il dealer support Acea devi comporre il numero 06 45698346, e comunicare i codici per identificarti:\n- Negozio: ${r.negozio}\n- SIS/SUB: ${r.sis}\n- Agenzia: ${r.agenzia}`;
           const url="https://wa.me/?text="+encodeURIComponent(msg);
           window.open(url,"_blank");
         };
