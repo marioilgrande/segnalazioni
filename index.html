@@ -4,180 +4,513 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>Gestione Segnalazioni Negozi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --primary:   #007BFF;
-      --success:   #0ABAB5;
-      --warning:   #FFEB3B;
-      --danger:    #dc2626;
-      --info:      #25D366;
-      --bg:        #eef2f7;
-      --card:      #fff;
-      --text:      #333;
-      --radius:    20px;
-      --space:     16px;
+      --primary:        #2563eb;
+      --primary-dark:   #1d4ed8;
+      --primary-light:  #dbeafe;
+      --success:        #0ABAB5;
+      --success-dark:   #089894;
+      --warning:        #f59e0b;
+      --warning-dark:   #d97706;
+      --danger:         #dc2626;
+      --danger-dark:    #b91c1c;
+      --info:           #25D366;
+      --info-dark:      #1ebd5b;
+      --bg:             #f1f5f9;
+      --bg-alt:         #e2e8f0;
+      --card:           #ffffff;
+      --text:           #0f172a;
+      --text-muted:     #64748b;
+      --border:         #e2e8f0;
+      --border-strong:  #cbd5e1;
+      --radius-sm:      8px;
+      --radius:         12px;
+      --radius-lg:      18px;
+      --space:          16px;
+      --shadow-sm:      0 1px 2px rgba(15,23,42,0.06), 0 1px 3px rgba(15,23,42,0.05);
+      --shadow:         0 4px 12px rgba(15,23,42,0.08), 0 2px 4px rgba(15,23,42,0.04);
+      --shadow-lg:      0 20px 40px rgba(15,23,42,0.12), 0 6px 12px rgba(15,23,42,0.06);
     }
-    * { box-sizing:border-box; margin:0; padding:0; }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      font-family: 'Montserrat', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
     body {
-      font-family: Arial, sans-serif;
-      background: var(--bg);
+      background: linear-gradient(135deg, #eef2f7 0%, #e2e8f0 100%);
       color: var(--text);
       padding: var(--space);
-      display: flex; justify-content: center;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      font-weight: 400;
+      letter-spacing: -0.005em;
     }
+
+    button, input, textarea, select {
+      font-family: inherit;
+    }
+
     .container {
       background: var(--card);
-      max-width: 1600px; width:100%;
-      border-radius: var(--radius);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      max-width: 1600px;
+      width: 100%;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
     }
+
+    /* ===== HEADER ===== */
     .header {
-      background: var(--primary);
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
       color: #fff;
-      padding: var(--space);
+      padding: 28px var(--space);
       text-align: center;
-      font-size: 1.75rem;
-      font-weight: bold;
+      position: relative;
     }
+    .header h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+    .header p {
+      margin-top: 6px;
+      font-size: 0.875rem;
+      font-weight: 400;
+      opacity: 0.85;
+      letter-spacing: 0.01em;
+    }
+
+    /* ===== CONTROLS ===== */
     .controls {
-      display: flex; flex-wrap: wrap; gap: var(--space);
-      padding: var(--space); align-items: center;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: var(--space);
+      align-items: center;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
     }
-    .controls .btn,
-    .controls .file-label {
+
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 200px;
+      max-width: 360px;
+    }
+    .search-wrap::before {
+      content: "🔍";
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.9rem;
+      pointer-events: none;
+      opacity: 0.6;
+    }
+    #search-input {
+      width: 100%;
+      padding: 11px 14px 11px 40px;
+      border: 1.5px solid var(--border-strong);
+      border-radius: var(--radius);
+      font-size: 0.9rem;
+      font-weight: 500;
+      background: var(--bg);
+      transition: border-color .15s, background .15s, box-shadow .15s;
+    }
+    #search-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: #fff;
+      box-shadow: 0 0 0 4px var(--primary-light);
+    }
+
+    .btn,
+    .file-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
       background: var(--primary);
       color: #fff;
-      padding: .6rem 1rem;
+      padding: 11px 18px;
       border: none;
       border-radius: var(--radius);
       font-weight: 600;
+      font-size: 0.85rem;
       cursor: pointer;
       text-decoration: none;
+      letter-spacing: 0.01em;
+      transition: background .15s, transform .15s, box-shadow .15s;
+      box-shadow: var(--shadow-sm);
+      white-space: nowrap;
     }
-    .controls .btn:hover,
-    .controls .file-label:hover { background: #0056b3; }
+    .btn:hover,
+    .file-label:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow);
+    }
+    .btn:active,
+    .file-label:active { transform: translateY(0); }
+
+    .btn-secondary {
+      background: var(--card);
+      color: var(--text);
+      border: 1.5px solid var(--border-strong);
+    }
+    .btn-secondary:hover {
+      background: var(--bg);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
     #file-input { display: none; }
 
-    #search-input {
-      flex: 1; min-width: 200px; max-width: 300px;
-      padding: 8px 12px; border: 1px solid #ccc;
-      border-radius: var(--radius); font-size: 1rem;
-    }
-
+    /* ===== TABLE ===== */
     .table-wrap {
       overflow-x: auto;
-      padding: 0 var(--space) var(--space);
+      padding: 0;
+      -webkit-overflow-scrolling: touch;
     }
     table {
-      width:100%; border-collapse: collapse; min-width:800px;
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 800px;
     }
-    th, td {
-      padding:12px 16px; border-bottom:1px solid #ddd;
-      text-align:left; white-space: nowrap;
+    thead {
+      background: var(--bg);
     }
-    thead { background: #f3f4f6; }
-    tbody tr:hover { background: #fafafa; }
+    th {
+      padding: 14px 18px;
+      text-align: left;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      border-bottom: 2px solid var(--border);
+      white-space: nowrap;
+    }
+    th:last-child { text-align: center; }
+    td {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text);
+      vertical-align: middle;
+    }
+    tbody tr {
+      transition: background .12s;
+    }
+    tbody tr:hover { background: #f8fafc; }
+    tbody tr:last-child td { border-bottom: none; }
 
+    td[contenteditable="true"] {
+      cursor: text;
+      border-radius: 6px;
+      transition: background .12s, box-shadow .12s;
+    }
+    td[contenteditable="true"]:focus {
+      outline: none;
+      background: var(--primary-light);
+      box-shadow: inset 0 0 0 2px var(--primary);
+    }
+
+    /* ===== ACTIONS ===== */
     .actions {
-      display: flex; justify-content: center;
-      gap: 8px; padding:8px 0; flex-wrap: wrap;
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      flex-wrap: wrap;
     }
     .actions button {
-      flex:1; max-width:100px;
-      height:34px; line-height:34px;
-      padding:0 6px;
-      font-size:.75rem; font-weight:bold;
-      text-align:center;
-      border-radius: var(--radius);
-      border:2px solid transparent;
-      cursor:pointer;
-      transition: transform .15s ease, box-shadow .15s ease;
+      flex: 0 1 auto;
+      min-width: 64px;
+      height: 34px;
+      padding: 0 12px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-align: center;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      color: #fff;
+      transition: transform .12s, box-shadow .12s, filter .12s;
+      box-shadow: var(--shadow-sm);
     }
     .actions button:hover {
-      transform: translateY(-2px) scale(1.02);
-      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+      filter: brightness(1.05);
     }
-    .actions .contract { background: var(--success); border-color: var(--success); color: #fff; }
-    .actions .credentials { background: var(--warning); border-color: var(--warning); color: #333; }
-    .actions .delete { background: var(--danger); border-color: var(--danger); color: #fff; }
-    .actions .whatsapp { background: var(--info); border-color: var(--info); color: #fff; }
+    .actions button:active { transform: translateY(0); }
+    .actions .contract    { background: var(--success); }
+    .actions .credentials { background: var(--warning); color: #fff; }
+    .actions .whatsapp    { background: var(--info); }
+    .actions .delete      { background: var(--danger); min-width: 40px; padding: 0 10px; }
 
+    /* ===== MODAL ===== */
     .modal {
-      position: fixed; top:0; left:0;
-      width:100%; height:100%;
-      background: rgba(0,0,0,0.5);
-      display: none; align-items: center; justify-content: center;
+      position: fixed; inset: 0;
+      background: rgba(15,23,42,0.55);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
       z-index: 1000;
+      padding: var(--space);
+      animation: fadeIn .15s ease;
     }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
     .modal-content {
       background: #fff;
-      padding: var(--space);
-      border-radius: var(--radius);
-      width: 90%; max-width: 400px;
+      padding: 24px;
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 440px;
+      box-shadow: var(--shadow-lg);
+      animation: slideUp .2s ease;
+      max-height: 90vh;
+      overflow-y: auto;
     }
     .modal-content h2,
     .modal-content h3 {
-      margin-bottom: var(--space);
-      font-size: 1.25rem;
-      color: var(--primary);
+      margin-bottom: 18px;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.01em;
     }
     .modal-content label {
       display: block;
-      margin-top: .75rem;
-      font-weight: bold;
+      margin-top: 14px;
+      margin-bottom: 4px;
+      font-weight: 600;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
     .modal-content input,
     .modal-content textarea {
-      width:100%; padding:8px; margin-top:4px;
-      border:1px solid #ccc; border-radius:var(--radius);
-      font-size:1rem; resize: vertical;
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid var(--border-strong);
+      border-radius: var(--radius);
+      font-size: 0.9rem;
+      font-weight: 500;
+      background: var(--bg);
+      transition: border-color .15s, background .15s, box-shadow .15s;
+      resize: vertical;
     }
-    .modal-content textarea { height:80px; }
+    .modal-content input:focus,
+    .modal-content textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: #fff;
+      box-shadow: 0 0 0 4px var(--primary-light);
+    }
+    .modal-content textarea { height: 90px; min-height: 60px; }
+
     .modal-buttons {
-      display:flex; justify-content:flex-end; gap:8px;
-      margin-top: var(--space);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 22px;
     }
     .modal-buttons button {
-      padding:8px 16px; border:none;
-      border-radius:var(--radius); cursor:pointer;
-      font-weight:600;
+      padding: 10px 20px;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.85rem;
+      transition: background .15s, transform .12s;
     }
-    .btn-cancel { background:#ccc; color:#333; }
-    .btn-confirm { background:var(--primary); color:#fff; }
+    .btn-cancel {
+      background: var(--bg-alt);
+      color: var(--text);
+    }
+    .btn-cancel:hover { background: #cbd5e1; }
+    .btn-confirm {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: var(--shadow-sm);
+    }
+    .btn-confirm:hover { background: var(--primary-dark); }
 
     /* Griglia opzioni credenziali */
     #credModal .option {
       display: grid;
       grid-template-columns: auto 1fr;
       align-items: center;
-      gap:12px;
-      margin-bottom: var(--space);
+      gap: 12px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: border-color .15s, background .15s;
     }
-    #credModal .option:last-of-type { margin-bottom: calc(var(--space)*1.5); }
-    #credModal .option label { margin:0; font-weight: normal; line-height:1.2; }
+    #credModal .option:hover { border-color: var(--primary); background: var(--primary-light); }
+    #credModal .option input[type="radio"] { accent-color: var(--primary); width: 18px; height: 18px; }
+    #credModal .option label {
+      margin: 0;
+      font-weight: 500;
+      font-size: 0.9rem;
+      color: var(--text);
+      text-transform: none;
+      letter-spacing: 0;
+      cursor: pointer;
+    }
+
+    /* ===== EMPTY STATE ===== */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
+    .empty-state .icon { font-size: 3rem; margin-bottom: 12px; opacity: 0.5; }
+    .empty-state h3 { font-weight: 600; font-size: 1rem; margin-bottom: 6px; color: var(--text); }
+    .empty-state p { font-size: 0.85rem; }
+
+    /* ===== MOBILE: cards instead of table ===== */
+    @media (max-width: 768px) {
+      body { padding: 8px; }
+      .container { border-radius: var(--radius); }
+      .header { padding: 20px var(--space); }
+      .header h1 { font-size: 1.25rem; }
+      .header p { font-size: 0.8rem; }
+
+      .controls {
+        padding: 12px;
+        gap: 8px;
+      }
+      .search-wrap { max-width: 100%; flex-basis: 100%; order: -1; }
+      .btn, .file-label {
+        flex: 1 1 calc(50% - 4px);
+        justify-content: center;
+        padding: 11px 12px;
+        font-size: 0.8rem;
+      }
+
+      .table-wrap { padding: 12px; overflow-x: visible; }
+      table, thead, tbody, th, td, tr { display: block; }
+      table { min-width: 0; }
+      thead { display: none; }
+
+      tbody tr {
+        background: var(--card);
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius);
+        margin-bottom: 12px;
+        padding: 14px;
+        box-shadow: var(--shadow-sm);
+      }
+      tbody tr:hover { background: var(--card); }
+      tbody tr:last-child { margin-bottom: 0; }
+
+      td {
+        padding: 8px 0;
+        border-bottom: 1px dashed var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        font-size: 0.88rem;
+        text-align: right;
+        white-space: normal;
+        word-break: break-word;
+      }
+      td:last-child { border-bottom: none; padding-top: 14px; }
+      td::before {
+        content: attr(data-label);
+        font-weight: 700;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--text-muted);
+        flex-shrink: 0;
+        text-align: left;
+      }
+      td.actions::before { display: none; }
+      td.actions {
+        display: flex;
+        justify-content: stretch;
+        gap: 6px;
+      }
+      .actions button {
+        flex: 1;
+        min-width: 0;
+        font-size: 0.72rem;
+      }
+      .actions .delete { flex: 0 0 44px; }
+
+      td[contenteditable="true"] {
+        padding: 8px 10px;
+        background: var(--bg);
+        border-radius: 6px;
+        margin-left: 8px;
+      }
+
+      .modal-content { padding: 20px; border-radius: var(--radius); }
+      .modal-buttons button { flex: 1; padding: 12px; }
+    }
+
+    @media (max-width: 380px) {
+      .btn, .file-label { flex-basis: 100%; }
+      .header h1 { font-size: 1.1rem; }
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="header">Gestione Segnalazioni Negozi</div>
-    <div class="controls">
-      <label for="file-input" class="file-label">📂 Importa Excel</label>
-      <input type="file" id="file-input" accept=".xlsx"/>
-      <input type="text" id="search-input" placeholder="Cerca negozio…"/>
-      <button id="add-row" class="btn">➕ Aggiungi Negozio</button>
-      <button id="export-excel" class="btn">📤 Esporta Excel</button>
+    <div class="header">
+      <h1>Gestione Segnalazioni Negozi</h1>
+      <p>Pannello operativo per richieste contratti, credenziali e contatti</p>
     </div>
+
+    <div class="controls">
+      <div class="search-wrap">
+        <input type="text" id="search-input" placeholder="Cerca negozio…"/>
+      </div>
+      <label for="file-input" class="file-label btn-secondary">📂 Importa Excel</label>
+      <input type="file" id="file-input" accept=".xlsx"/>
+      <button id="add-row" class="btn">➕ Aggiungi Negozio</button>
+      <button id="export-excel" class="btn btn-secondary">📤 Esporta Excel</button>
+    </div>
+
     <div class="table-wrap">
       <table id="data-table">
         <thead>
           <tr>
-            <th>NEGOZIO</th><th>SIS/SUB</th><th>AGENZIA</th>
-            <th>TELEFONO</th><th>MAIL</th><th>AZIONI</th>
+            <th>Negozio</th><th>SIS/SUB</th><th>Agenzia</th>
+            <th>Telefono</th><th>Mail</th><th>Azioni</th>
           </tr>
         </thead>
         <tbody></tbody>
       </table>
+      <div id="empty-state" class="empty-state" style="display:none;">
+        <div class="icon">📋</div>
+        <h3>Nessun negozio presente</h3>
+        <p>Importa un file Excel o aggiungi un nuovo negozio per iniziare.</p>
+      </div>
     </div>
   </div>
 
@@ -226,6 +559,14 @@
     const STORAGE='segnalazioniNegozi';
     let data=[], currentRowIndex=null, filter='';
 
+    const LABELS = {
+      negozio: 'Negozio',
+      sis: 'SIS/SUB',
+      agenzia: 'Agenzia',
+      telefono: 'Telefono',
+      mail: 'Mail'
+    };
+
     function save(){ localStorage.setItem(STORAGE, JSON.stringify(data)); }
     function load(){ const s=localStorage.getItem(STORAGE); if(s) data=JSON.parse(s); draw(); }
 
@@ -242,38 +583,50 @@
 
     function draw(){
       const tbody=document.querySelector('#data-table tbody');
+      const empty=document.getElementById('empty-state');
       tbody.innerHTML='';
+
+      const visible = data.filter(r => !filter || (r.negozio||'').toLowerCase().includes(filter));
+      empty.style.display = visible.length === 0 ? 'block' : 'none';
+      document.getElementById('data-table').style.display = visible.length === 0 ? 'none' : '';
+
       data.forEach((r,i)=>{
-        if(filter && !r.negozio.toLowerCase().includes(filter)) return;
+        if(filter && !(r.negozio||'').toLowerCase().includes(filter)) return;
         const tr=document.createElement('tr');
         ['negozio','sis','agenzia','telefono','mail'].forEach(k=>{
           const td=document.createElement('td');
+          td.setAttribute('data-label', LABELS[k]);
           td.contentEditable=true;
           td.innerText=r[k]||''; td.oninput=()=>{r[k]=td.innerText; save();};
           tr.appendChild(td);
         });
         const tdA=document.createElement('td'); tdA.className='actions';
+        tdA.setAttribute('data-label','Azioni');
 
         const cred=document.createElement('button');
         cred.className='credentials'; cred.innerText='CRED';
+        cred.title='Reset credenziali';
         cred.onclick=()=>openCredModal(i); tdA.appendChild(cred);
 
         const ctr=document.createElement('button');
         ctr.className='contract'; ctr.innerText='CONTR';
+        ctr.title='Richiesta contratto';
         ctr.onclick=()=>{ currentRowIndex=i; document.getElementById('contractModal').style.display='flex'; };
         tdA.appendChild(ctr);
 
         const wa=document.createElement('button');
         wa.className='whatsapp'; wa.innerText='INVIA';
+        wa.title='Invia via WhatsApp';
         wa.onclick=()=>{
-          const msg=`Ciao! Per chiamare il dealer support Acea devi comporre il numero 06 45698346, e comunicare i codici per identificarti:\n- Negozio: ${r.negozio}\n- SIS/SUB: ${r.sis}\n- Agenzia: ${r.agenzia}`;
+          const msg=`Ciao! Per chiamare il dealer support Acea devi comporre il numero 06 45698346, premere il tasto 2, e comunicare i codici per identificarti:\n- Negozio: ${r.negozio}\n- SIS/SUB: ${r.sis}\n- Agenzia: ${r.agenzia}`;
           const url="https://wa.me/?text="+encodeURIComponent(msg);
           window.open(url,"_blank");
         };
         tdA.appendChild(wa);
 
         const del=document.createElement('button');
-        del.className='delete'; del.innerText='❌';
+        del.className='delete'; del.innerText='✕';
+        del.title='Elimina riga';
         del.onclick=()=>{ if(confirm('Eliminare questa riga?')){ data.splice(i,1); save(); draw(); } };
         tdA.appendChild(del);
 
@@ -308,48 +661,47 @@
       XLSX.writeFile(wb,"segnalazioni.xlsx");
     });
 
-// CONTRATTO
-const contractModal = document.getElementById('contractModal');
-contractModal.querySelector('.btn-cancel').onclick = () => {
-  contractModal.style.display = 'none';
-};
+    // CONTRATTO
+    const contractModal = document.getElementById('contractModal');
+    contractModal.querySelector('.btn-cancel').onclick = () => {
+      contractModal.style.display = 'none';
+    };
 
-document.getElementById('contractForm').addEventListener('submit', e => {
-  e.preventDefault();
+    document.getElementById('contractForm').addEventListener('submit', e => {
+      e.preventDefault();
 
-  const row  = data[currentRowIndex];
-  const cf   = e.target.cf.value.trim();
-  const prat = e.target.pratica.value.trim();
-  const note = e.target.note.value.trim();
+      const row  = data[currentRowIndex];
+      const cf   = e.target.cf.value.trim();
+      const prat = e.target.pratica.value.trim();
+      const note = e.target.note.value.trim();
 
-  const subject = `Richiesta supporto: ${prat}`;
-  const body = [
-    `Ciao Luca,`,
-    ``,
-    `Ti chiedo assistenza per il punto vendita:`,
-    `- Negozio: ${row.negozio}`,
-    `- SIS/SUB: ${row.sis}`,
-    `- Agenzia: ${row.agenzia}`,
-    ``,
-    `Dati della pratica:`,
-    `- Codice Fiscale: ${cf}`,
-    `- Numero Pratica: ${prat}`,
-    `- Note: ${note}`,
-    ``,
-    `Cordiali saluti`
-  ].join('\n');
+      const subject = `Richiesta supporto: ${prat}`;
+      const body = [
+        `Ciao Luca,`,
+        ``,
+        `Ti chiedo assistenza per il punto vendita:`,
+        `- Negozio: ${row.negozio}`,
+        `- SIS/SUB: ${row.sis}`,
+        `- Agenzia: ${row.agenzia}`,
+        ``,
+        `Dati della pratica:`,
+        `- Codice Fiscale: ${cf}`,
+        `- Numero Pratica: ${prat}`,
+        `- Note: ${note}`,
+        ``,
+        `Cordiali saluti`
+      ].join('\n');
 
-  sendEmail(
-    'luca.lomonte@e2kdistribution.com',
-    '',
-    subject,
-    body
-  );
+      sendEmail(
+        'luca.lomonte@e2kdistribution.com',
+        '',
+        subject,
+        body
+      );
 
-  contractModal.style.display = 'none';
-  e.target.reset();
-});
-
+      contractModal.style.display = 'none';
+      e.target.reset();
+    });
 
     // CREDENZIALI
     function openCredModal(idx){ currentRowIndex=idx; document.getElementById('credModal').style.display='flex'; }
@@ -373,8 +725,15 @@ document.getElementById('contractForm').addEventListener('submit', e => {
       credModal.style.display='none'; e.target.reset();
     });
 
+    // Chiudi modali cliccando sullo sfondo
+    document.querySelectorAll('.modal').forEach(m => {
+      m.addEventListener('click', e => { if(e.target === m) m.style.display = 'none'; });
+    });
+    document.addEventListener('keydown', e => {
+      if(e.key === 'Escape') document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+    });
+
     window.addEventListener('DOMContentLoaded',load);
   </script>
 </body>
 </html>
-
