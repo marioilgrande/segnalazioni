@@ -546,6 +546,10 @@
           <input type="radio" id="mode-auth" name="mode" value="authenticator">
           <label for="mode-auth">Reset credenziali + dissociazione Authenticator</label>
         </div>
+        <div class="option">
+          <input type="radio" id="mode-reactivate" name="mode" value="reactivate">
+          <label for="mode-reactivate">Riattiva utenza</label>
+        </div>
         <div class="modal-buttons">
           <button type="button" id="credCancel" class="btn-cancel">Annulla</button>
           <button type="submit" class="btn-confirm">Conferma</button>
@@ -711,16 +715,35 @@
       e.preventDefault();
       const row=data[currentRowIndex];
       const mode=e.target.mode.value;
-      let subject='Richiesta reset credenziali';
-      if(mode==='authenticator') subject+=' e Authenticator';
-      subject+=` – ${row.negozio} (${row.sis}) – ${row.agenzia}`;
-      const body=[
-        `Ciao Luca,`, ``,
-        `Con la presente richiedo il reset delle credenziali${mode==='authenticator'?' e la dissociazione dell’Authenticator':''}`,
-        `per il seguente punto vendita:`,
-        `- Negozio: ${row.negozio}`, `- SIS/SUB: ${row.sis}`, `- Agenzia: ${row.agenzia}`,
-        `- Telefono: ${row.telefono}`, `- Mail: ${row.mail}`, ``, `Cordiali saluti`
-      ].join('\n');
+      let subject, body;
+
+      if(mode==='reactivate'){
+        subject=`RIATTIVAZIONE UTENZA DI ${row.negozio}`;
+        body=[
+          `Ciao Luca, per il partner in oggetto ti chiedo di riattivare l'utenza di Acea.`,
+          ``,
+          `Ecco i dati del negozio:`,
+          `- Negozio: ${row.negozio}`,
+          `- SIS/SUB: ${row.sis}`,
+          `- Agenzia: ${row.agenzia}`,
+          `- Telefono: ${row.telefono}`,
+          `- Mail: ${row.mail}`,
+          ``,
+          `Grazie per il supporto`
+        ].join('\n');
+      } else {
+        subject='Richiesta reset credenziali';
+        if(mode==='authenticator') subject+=' e Authenticator';
+        subject+=` – ${row.negozio} (${row.sis}) – ${row.agenzia}`;
+        body=[
+          `Ciao Luca,`, ``,
+          `Con la presente richiedo il reset delle credenziali${mode==='authenticator'?' e la dissociazione dell’Authenticator':''}`,
+          `per il seguente punto vendita:`,
+          `- Negozio: ${row.negozio}`, `- SIS/SUB: ${row.sis}`, `- Agenzia: ${row.agenzia}`,
+          `- Telefono: ${row.telefono}`, `- Mail: ${row.mail}`, ``, `Cordiali saluti`
+        ].join('\n');
+      }
+
       sendEmail('luca.lomonte@e2kdistribution.com','',subject,body);
       credModal.style.display='none'; e.target.reset();
     });
